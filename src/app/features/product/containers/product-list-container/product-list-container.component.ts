@@ -1,4 +1,4 @@
-import { Component, OnInit, inject } from '@angular/core';
+import { Component, OnInit, Signal, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { catchError, EMPTY, finalize, Observable } from 'rxjs';
 import { ProductListComponent } from '../../components/product-list/product-list.component';
@@ -12,9 +12,9 @@ import { Product } from '../../../../models/product.model';
   imports: [CommonModule, ProductListComponent],
   template: `
     <app-product-list
-      [products]="products$ | async"
-      [error]="error"
-      [loading]="loading"
+      [products]="products()"
+      [error]="error()"
+      [loading]="loading()"
       [isAuthenticated]="(authState$ | async)?.isAuthenticated || false"
       (addToCart)="onAddToCart($event)"
       (refresh)="onRefresh()">
@@ -26,31 +26,19 @@ export class ProductListContainerComponent implements OnInit {
   private cartService = inject(CartService);
   private authService = inject(AuthService);
 
-  products$!: Observable<Product[]>;
-  error: string | null = null;
-  loading: boolean = false;
+  products: Signal<Product[]> = this.productService.products;
+  error = this.productService.error;
+  loading = this.productService.loading;
+
+  // products$!: Observable<Product[]>;
+  // error: string | null = null;
+  // loading: boolean = false;
 
   authState$ = this.authService.getAuthState();
 
-  constructor() {
-    this.loadProducts();
+  ngOnInit(): void {
+    this.productService.getProducts();
   }
-
-  private loadProducts() {
-    this.loading = true;
-    this.products$ = this
-      .productService
-      .getProducts()
-      .pipe(
-        catchError(error => {
-          this.error = error.message || "Failed to load products";
-          return EMPTY;
-        }),
-        finalize(() => this.loading = false)
-      );
-  }
-
-  ngOnInit(): void {}
 
   onAddToCart(productId: number): void {
     this.cartService.addToCart(productId);
@@ -58,6 +46,5 @@ export class ProductListContainerComponent implements OnInit {
 
   onRefresh(): void {
     this.productService.refreshCache();
-    this.loadProducts();
   }
 }
