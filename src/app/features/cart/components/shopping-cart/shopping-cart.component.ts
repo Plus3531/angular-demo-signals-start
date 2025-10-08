@@ -1,4 +1,4 @@
-import { Component, Input, output } from '@angular/core';
+import { Component, Input, output, input } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { CartItem } from '../../../../models/cart-item.model';
 import { Product } from '../../../../models/product.model';
@@ -13,7 +13,7 @@ interface CartItemWithProduct extends CartItem {
   templateUrl: './shopping-cart.component.html'
 })
 export class ShoppingCartComponent {
-  @Input() items: CartItemWithProduct[] = [];
+  items = input.required<CartItemWithProduct[]>();
   readonly updateQuantity = output<{
     productId: number;
     quantity: number;

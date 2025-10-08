@@ -1,4 +1,4 @@
-import { Component, Input, output, input } from '@angular/core';
+import { Component, Input, output, input, computed, model, linkedSignal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterModule } from '@angular/router';
 import { FormsModule } from '@angular/forms';
@@ -10,57 +10,51 @@ import { Product } from '../../../../models/product.model';
   templateUrl: './product-list.component.html'
 })
 export class ProductListComponent {
-  @Input() set products(value: Product[] | null) {
-    this._products = value || [];
-    this.applyFilters();
-  }
-  get products(): Product[] {
-    return this._products;
-  }
 
-  @Input() error!: string | null;
+  products = input.required<Product[]>();
+
+  readonly error = input.required<string | null>();
   readonly loading = input(false);
   readonly isAuthenticated = input(false);
   readonly addToCart = output<number>();
   readonly refresh = output<void>();
 
-  searchQuery = '';
-  selectedCategory = '';
-  sortBy = 'name';
 
-  private _products: Product[] = [];
-  filteredProducts: Product[] = [];
-  categories: string[] = [];
+  selectedCategory = model('');
+  searchQuery = linkedSignal({
+    source: this.selectedCategory,
+    computation: () => ''
+  });
+   sortBy = linkedSignal({
+    source: this.searchQuery,
+    computation: () => 'name'
+  });
 
-  ngOnChanges(): void {
-    if (this.products) {
-      this.categories = [...new Set(this.products.map(p => p.category))];
-      this.applyFilters();
-    }
-  }
+  categories = computed(() =>
+    [...new Set(this.products().map(p => p.category))]
+  );
 
-  applyFilters(): void {
-    let filtered = [...this.products];
+  filteredProducts = computed(() => {
+    let filtered = [...this.products()];
 
     // Apply search filter
-    if (this.searchQuery) {
-      const query = this.searchQuery.toLowerCase();
+    if (this.searchQuery()) {
+      const query = this.searchQuery().toLowerCase();
       filtered = filtered.filter(product =>
         product.title.toLowerCase().includes(query) ||
         product.description.toLowerCase().includes(query) ||
         product.category.toLowerCase().includes(query)
       );
     }
-
-    // Apply category filter
-    if (this.selectedCategory) {
+// Apply category filter
+    if (this.selectedCategory()) {
       filtered = filtered.filter(product =>
-        product.category === this.selectedCategory
+        product.category === this.selectedCategory()
       );
     }
 
     // Apply sorting
-    switch (this.sortBy) {
+    switch (this.sortBy()) {
       case 'price-asc':
         filtered.sort((a, b) => a.price - b.price);
         break;
@@ -74,8 +68,8 @@ export class ProductListComponent {
         filtered.sort((a, b) => a.title.localeCompare(b.title));
     }
 
-    this.filteredProducts = filtered;
-  }
+    return filtered;
+  });
 
   onAddToCart(productId: number): void {
     this.addToCart.emit(productId);

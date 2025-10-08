@@ -2,6 +2,7 @@ import {
   Component,
   Input,
   inject,
+  input,
   numberAttribute,
 } from "@angular/core";
 import { CommonModule } from "@angular/common";
@@ -38,14 +39,27 @@ export class ProductFormContainerComponent {
   isSubmitting = false;
   private productId: number | null = null;
 
-  @Input({ transform: numberAttribute })
-  set id(productId: number) {
-    this.productId = productId ? Number(productId) : null;
+  id = input<number>();
+ 
+  ngOnInit() {
+    this.productId = this.id() ?? null;
+    // Clear any previously selected product
     this.productService.clearSelectedProduct();
+ 
+    // Only fetch product if we're in edit mode
     if (this.productId) {
       this.productService.getProduct(this.productId);
     }
   }
+
+  // @Input({ transform: numberAttribute })
+  // set id(productId: number) {
+  //   this.productId = productId ? Number(productId) : null;
+  //   this.productService.clearSelectedProduct();
+  //   if (this.productId) {
+  //     this.productService.getProduct(this.productId);
+  //   }
+  // }
 
   onSave(formData: Partial<Product>): void {
     if (!this.validateFormData(formData)) {
