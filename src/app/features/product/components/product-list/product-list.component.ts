@@ -1,4 +1,4 @@
-import { Component, Input, Output, EventEmitter } from '@angular/core';
+import { Component, Input, output, input } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterModule } from '@angular/router';
 import { FormsModule } from '@angular/forms';
@@ -19,10 +19,10 @@ export class ProductListComponent {
   }
 
   @Input() error!: string | null;
-  @Input() loading = false;
-  @Input() isAuthenticated = false;
-  @Output() addToCart = new EventEmitter<number>();
-  @Output() refresh = new EventEmitter<void>();
+  readonly loading = input(false);
+  readonly isAuthenticated = input(false);
+  readonly addToCart = output<number>();
+  readonly refresh = output<void>();
 
   searchQuery = '';
   selectedCategory = '';
@@ -82,6 +82,7 @@ export class ProductListComponent {
   }
 
   onRefresh(): void {
+    // TODO: The 'emit' function requires a mandatory void argument
     this.refresh.emit();
   }
 }

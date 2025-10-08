@@ -1,4 +1,4 @@
-import { Component, Input, Output, EventEmitter } from '@angular/core';
+import { Component, Input, output, input } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterModule } from '@angular/router';
 import { Product } from '../../../../models/product.model';
@@ -10,11 +10,11 @@ import { Product } from '../../../../models/product.model';
 })
 export class ProductDetailsComponent {
   @Input() product: Product | null = null;
-  @Input() isAuthenticated = false;
+  readonly isAuthenticated = input(false);
   @Input() error!: string | null;
-  @Input() loading = false;
-  @Output() addToCart = new EventEmitter<number>();
-  @Output() delete = new EventEmitter<number>();
+  readonly loading = input(false);
+  readonly addToCart = output<number>();
+  readonly delete = output<number>();
 
 
   onAddToCart(productId: number): void {
